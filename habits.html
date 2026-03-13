@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Habit Tracker — build daily habits, track streaks, and view weekly progress." />
+  <title>TaskFlow — Habit Tracker</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="habits.css" />
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════
+       APP SHELL
+  ══════════════════════════════════════════════ -->
+  <div class="app-shell" id="appShell">
+
+    <!-- ── Sidebar ──────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <span class="logo-icon">✅</span>
+        <span class="logo-text">TaskFlow</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="index.html" class="nav-btn nav-link">
+              <span class="nav-icon">📋</span>
+              <span>To-Do Tasks</span>
+            </a>
+          </li>
+          <!-- Divider -->
+          <li><div class="nav-divider"></div></li>
+          <li>
+            <a href="habits.html" class="nav-btn nav-link active">
+              <span class="nav-icon">🔥</span>
+              <span>Habit Tracker</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Add Habit CTA -->
+      <div class="sidebar-footer">
+        <button class="btn-add-task" id="btnOpenModal">
+          <span>＋</span> Add Habit
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────── -->
+    <main class="main-content">
+
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <div>
+          <h1 class="page-title">Habit Tracker</h1>
+          <p class="page-subtitle" id="todayDate"></p>
+        </div>
+      </header>
+
+      <!-- ── Stats Row ────────────────────────────── -->
+      <section class="stats-row">
+        <!-- Total Habits -->
+        <div class="stat-card">
+          <div class="stat-icon">📌</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statTotalHabits">0</span>
+            <span class="stat-label">Total Habits</span>
+          </div>
+        </div>
+        <!-- Completed Today -->
+        <div class="stat-card completed-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statDoneToday">0</span>
+            <span class="stat-label">Done Today</span>
+          </div>
+        </div>
+        <!-- Best Streak -->
+        <div class="stat-card pending-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statBestStreak">0</span>
+            <span class="stat-label">Best Streak</span>
+          </div>
+        </div>
+        <!-- Progress Today -->
+        <div class="stat-card percent-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statProgressPct">0%</span>
+            <span class="stat-label">Today's Progress</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Reminder Banner ───────────────────────── -->
+      <div class="notification-banner habit-reminder" id="reminderBanner" style="display:none;">
+        <div class="notif-icon">🔔</div>
+        <div class="notif-content" id="reminderContent"></div>
+        <button class="notif-close" id="reminderClose" aria-label="Dismiss">✕</button>
+      </div>
+
+      <!-- ── Sort Bar ──────────────────────────────── -->
+      <section class="filter-bar">
+        <p class="sort-label" style="font-weight:600; color:var(--text-primary);">All Habits</p>
+        <div class="sort-control">
+          <label for="sortSelect" class="sort-label">Sort by:</label>
+          <select id="sortSelect" class="sort-select">
+            <option value="recent">Recently Created</option>
+            <option value="streak">Highest Streak</option>
+            <option value="incomplete">Incomplete Today</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- ── Habit Grid ─────────────────────────────── -->
+      <section class="task-grid habit-grid" id="habitGrid">
+        <!-- Cards injected by habits.js -->
+      </section>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🌱</div>
+        <h3>No habits yet</h3>
+        <p>Click <strong>"Add Habit"</strong> to start building your first habit.</p>
+      </div>
+
+      <!-- ── Weekly Report ─────────────────────────── -->
+      <section class="weekly-report" id="weeklyReport">
+        <h2 class="weekly-title">📅 Weekly Report</h2>
+        <p class="weekly-sub">Habits completed per day (last 7 days)</p>
+        <div class="weekly-grid" id="weeklyGrid">
+          <!-- 7-day columns injected by habits.js -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       MODAL — Add / Edit Habit
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Add New Habit</h2>
+        <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+      </div>
+
+      <form id="habitForm" novalidate>
+        <input type="hidden" id="habitId" />
+
+        <!-- Habit Name using Uiverse inputGroup style -->
+        <div class="inputGroup">
+          <input
+            type="text"
+            id="habitName"
+            required
+            autocomplete="off"
+            maxlength="60"
+          />
+          <label for="habitName">Habit Name</label>
+        </div>
+        <span class="field-error" id="errHabitName"></span>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancel">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSave">Save Habit</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       DELETE CONFIRM DIALOG
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="deleteOverlay">
+    <div class="modal confirm-modal" role="dialog" aria-modal="true">
+      <div class="confirm-icon">🗑️</div>
+      <h3>Delete Habit?</h3>
+      <p>All streak data will be permanently lost.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btnDeleteCancel">Cancel</button>
+        <button class="btn-danger"    id="btnDeleteConfirm">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="firebase.js"></script>
+  <script src="habits.js"></script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A modern To-Do List Dashboard with Firebase Firestore backend for managing tasks with priorities, due dates, and real-time sync." />
+  <title>TaskFlow — To-Do Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Firebase Compat SDK (v9 compat mode — works with script tags) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════
+       APP SHELL
+  ══════════════════════════════════════════════ -->
+  <div class="app-shell" id="appShell">
+
+    <!-- ── Sidebar ──────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <span class="logo-icon">✅</span>
+        <span class="logo-text">TaskFlow</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <button class="nav-btn active" id="navAll" data-filter="all">
+              <span class="nav-icon">📋</span>
+              <span>All Tasks</span>
+              <span class="nav-badge" id="badgeAll">0</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" id="navPending" data-filter="pending">
+              <span class="nav-icon">⏳</span>
+              <span>Pending</span>
+              <span class="nav-badge" id="badgePending">0</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-btn" id="navCompleted" data-filter="completed">
+              <span class="nav-icon">🎉</span>
+              <span>Completed</span>
+              <span class="nav-badge" id="badgeCompleted">0</span>
+            </button>
+          </li>
+          <!-- Divider -->
+          <li><div class="nav-divider"></div></li>
+          <li>
+            <a href="habits.html" class="nav-btn nav-link">
+              <span class="nav-icon">🔥</span>
+              <span>Habit Tracker</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Add Task CTA -->
+      <div class="sidebar-footer">
+        <button class="btn-add-task" id="btnOpenModal">
+          <span>＋</span> Add Task
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────── -->
+    <main class="main-content">
+
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <!-- Hamburger (mobile) -->
+        <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <h1 class="page-title">My Dashboard</h1>
+        <p class="page-subtitle" id="todayDate"></p>
+      </header>
+
+      <!-- ── Stats Row ────────────────────────────── -->
+      <section class="stats-row">
+        <div class="stat-card" id="statTotal">
+          <div class="stat-icon">📌</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statTotalVal">0</span>
+            <span class="stat-label">Total Tasks</span>
+          </div>
+        </div>
+        <div class="stat-card completed-card" id="statCompleted">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statCompletedVal">0</span>
+            <span class="stat-label">Completed</span>
+          </div>
+        </div>
+        <div class="stat-card pending-card" id="statPending">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statPendingVal">0</span>
+            <span class="stat-label">Pending</span>
+          </div>
+        </div>
+        <div class="stat-card percent-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statPercentVal">0%</span>
+            <span class="stat-label">Completion</span>
+          </div>
+          <!-- Progress bar -->
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Notification Banner ───────────────────── -->
+      <div class="notification-banner" id="notificationBanner" style="display:none;">
+        <div class="notif-icon">🔔</div>
+        <div class="notif-content" id="notifContent"></div>
+        <button class="notif-close" id="notifClose" aria-label="Dismiss">✕</button>
+      </div>
+
+      <!-- ── Filter & Sort Bar ─────────────────────── -->
+      <section class="filter-bar">
+        <div class="filter-pills" id="filterPills">
+          <button class="pill active" data-filter="all">All</button>
+          <button class="pill" data-filter="pending">Pending</button>
+          <button class="pill" data-filter="completed">Completed</button>
+        </div>
+        <div class="sort-control">
+          <label for="sortSelect" class="sort-label">Sort by:</label>
+          <select id="sortSelect" class="sort-select">
+            <option value="createdAt">Date Added</option>
+            <option value="dueDate">Due Date</option>
+            <option value="priority">Priority</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- ── Task Grid ─────────────────────────────── -->
+      <section class="task-grid" id="taskGrid">
+        <!-- Task cards injected by script.js -->
+      </section>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🗂️</div>
+        <h3>No tasks found</h3>
+        <p>Click <strong>"Add Task"</strong> to create your first task.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       MODAL — Add / Edit Task
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Add New Task</h2>
+        <button class="modal-close" id="modalClose" aria-label="Close modal">✕</button>
+      </div>
+
+      <!-- Task Form -->
+      <form id="taskForm" novalidate>
+        <!-- Hidden field for edit mode -->
+        <input type="hidden" id="taskId" />
+
+        <!-- Title -->
+        <div class="form-group">
+          <label for="taskTitle">Title <span class="required">*</span></label>
+          <input type="text" id="taskTitle" placeholder="e.g. Design landing page" required maxlength="80" />
+          <span class="field-error" id="errTitle"></span>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="taskDesc">Description</label>
+          <textarea id="taskDesc" rows="3" placeholder="Add details about this task…" maxlength="300"></textarea>
+        </div>
+
+        <!-- Priority & Due Date (side by side) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskPriority">Priority <span class="required">*</span></label>
+            <select id="taskPriority" required>
+              <option value="">Select priority</option>
+              <option value="low">🟢 Low</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+            <span class="field-error" id="errPriority"></span>
+          </div>
+          <div class="form-group">
+            <label for="taskDueDate">Due Date <span class="required">*</span></label>
+            <input type="date" id="taskDueDate" required />
+            <span class="field-error" id="errDueDate"></span>
+          </div>
+        </div>
+
+        <!-- Status (only shown when editing) -->
+        <div class="form-group" id="statusGroup" style="display:none;">
+          <label for="taskStatus">Status</label>
+          <select id="taskStatus">
+            <option value="pending">⏳ Pending</option>
+            <option value="completed">✅ Completed</option>
+          </select>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancel">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSave">Save Task</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       DELETE CONFIRM DIALOG
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="deleteOverlay">
+    <div class="modal confirm-modal" role="dialog" aria-modal="true">
+      <div class="confirm-icon">🗑️</div>
+      <h3>Delete Task?</h3>
+      <p>This action cannot be undone. The task will be permanently removed.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btnDeleteCancel">Cancel</button>
+        <button class="btn-danger" id="btnDeleteConfirm">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TOAST NOTIFICATION
+  ══════════════════════════════════════════════ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="firebase.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

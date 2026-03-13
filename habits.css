@@ -1,0 +1,310 @@
+/* ============================================================
+   habits.css — Habit Tracker Styles
+   Extends the shared style.css design tokens.
+   ============================================================ */
+
+/* ── 1. Uiverse.io inputGroup Component ─────────────────────
+   Source: https://uiverse.io/Maximinodotpy
+   Adapted to match the dashboard modal context.
+   ──────────────────────────────────────────────────────────── */
+.inputGroup {
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+  margin: 1.2em 0 0.4em 0;
+  position: relative;
+  width: 100%;           /* full width inside modal */
+  max-width: 100%;
+}
+
+.inputGroup input {
+  font-size: 100%;
+  padding: 0.85em 1em;
+  outline: none;
+  border: 2px solid rgb(200, 200, 200);
+  background-color: transparent;
+  border-radius: 20px;
+  width: 100%;
+  color: var(--text-primary, #0f172a);
+  transition: border-color 0.3s ease;
+}
+
+.inputGroup label {
+  font-size: 100%;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.8em;
+  margin-left: 0.5em;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  color: rgb(100, 100, 100);
+}
+
+/* Floating label state — triggered by focus or valid (non-empty) input */
+.inputGroup :is(input:focus, input:valid) ~ label {
+  transform: translateY(-145%);
+  margin: 0;
+  margin-left: 1.3em;
+  padding: 0.4em;
+  background-color: #e8e8e8;
+  border-radius: 6px;
+  font-size: 88%;
+}
+
+.inputGroup :is(input:focus, input:valid) {
+  border-color: rgb(150, 150, 200);
+}
+
+/* ── 2. Nav Enhancements ──────────────────────────────────── */
+
+/* Divider line between nav groups */
+.nav-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 14px;
+}
+
+/* Allow <a> tags to be styled just like .nav-btn */
+.nav-btn.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm, 8px);
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--transition, 0.22s ease), color var(--transition, 0.22s ease);
+  width: 100%;
+}
+.nav-btn.nav-link:hover  { background: var(--sidebar-hover, #1e293b); color: #fff; }
+.nav-btn.nav-link.active { background: var(--accent, #7c3aed); color: #fff; }
+
+/* ── 3. Habit Grid ────────────────────────────────────────── */
+.habit-grid {
+  /* inherits .task-grid grid settings from style.css */
+}
+
+/* ── 4. Habit Card ────────────────────────────────────────── */
+.habit-card {
+  background: var(--bg-card, #fff);
+  border-radius: var(--radius-md, 14px);
+  padding: 22px 20px;
+  border: 1.5px solid var(--border, #e2e8f0);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform var(--transition), box-shadow var(--transition);
+  animation: fadeInCard 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.habit-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Green left-border accent when done today */
+.habit-card.done-today {
+  border-left: 4px solid var(--prio-low, #10b981);
+}
+.habit-card.done-today::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Card top row: name + action buttons */
+.habit-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.habit-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+/* Streak badge ── fire emoji + number */
+.streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ea580c;   /* orange-600 */
+  background: #fff7ed;
+  border: 1.5px solid #fed7aa;
+  padding: 4px 12px;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+.streak-badge .fire { font-size: 16px; }
+
+/* Streak details row */
+.streak-details {
+  display: flex;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.streak-details span { display: flex; align-items: center; gap: 4px; }
+.streak-details strong { color: var(--text-primary); font-weight: 700; }
+
+/* Card bottom action row */
+.habit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Done Today button */
+.btn-done-today {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 13px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition);
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+.btn-done-today::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 20%, rgba(255,255,255,0.2) 50%, transparent 80%);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.btn-done-today:hover::after { transform: translateX(100%); }
+.btn-done-today:hover   { opacity: 0.9; transform: translateY(-1px); }
+.btn-done-today:active  { transform: none; }
+
+/* Disabled = already done today */
+.btn-done-today:disabled {
+  background: #d1fae5;
+  color: #065f46;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+  opacity: 1;
+}
+.btn-done-today:disabled::after { display: none; }
+
+/* Edit / Delete icon buttons reuse .card-btn from style.css */
+
+/* ── 5. Reminder Banner override (today-orange tone) ──────── */
+.habit-reminder {
+  background: var(--notif-today-bg, #fff7ed);
+  border-color: var(--notif-today-bdr, #fdba74);
+}
+.habit-reminder .notif-content { color: #7c2d12; }
+.habit-reminder .notif-close   { color: #7c2d12; }
+
+/* ── 6. Weekly Report ─────────────────────────────────────── */
+.weekly-report {
+  margin-top: 40px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.weekly-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.weekly-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+/* 7-column grid for days */
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.weekly-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Bar container */
+.week-bar-wrap {
+  width: 100%;
+  height: 100px;
+  background: var(--bg-main);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* Filled portion of bar */
+.week-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent));
+  border-radius: 8px;
+  min-height: 4px;
+  transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Today highlight */
+.weekly-day.today .week-bar-fill {
+  background: linear-gradient(180deg, #34d399, #059669);
+}
+.weekly-day.today .week-day-label {
+  color: #059669;
+  font-weight: 800;
+}
+
+.week-count  {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.week-day-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* ── 7. Responsive ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .weekly-grid { grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .week-bar-wrap { height: 70px; }
+  .weekly-report { padding: 20px 14px; }
+}
+
+@media (max-width: 480px) {
+  .weekly-grid { gap: 4px; }
+  .week-count  { font-size: 12px; }
+  .week-day-label { font-size: 10px; }
+  .habit-actions { flex-wrap: wrap; }
+  .btn-done-today { flex: 0 0 100%; }
+}

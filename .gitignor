@@ -1,0 +1,10 @@
+# Ignore system files
+.antigravity/
+.vscode/
+*.exe
+*.dll
+
+# Ignore massive library folders
+venv/
+node_modules/
+__pycache__/
