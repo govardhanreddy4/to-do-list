@@ -14,6 +14,9 @@
 
   <!-- App Styles -->
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6C4DFF">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <!-- Firebase Compat SDK (v9 compat mode — works with script tags) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -89,6 +92,12 @@
               <span>Habit Tracker</span>
             </a>
           </li>
+          <li id="installNavItem" style="display: none;">
+            <button class="nav-btn" id="btnInstallApp" style="background: rgba(108, 77, 255, 0.1); border: 1.5px dashed var(--accent);">
+              <span class="nav-icon">📲</span>
+              <span>Install App</span>
+            </button>
+          </li>
         </ul>
       </nav>
 
@@ -158,23 +167,6 @@
         </div>
       </section>
 
-      <!-- ── Quick Actions ────────────────────────────────── -->
-      <section class="quick-actions">
-        <button class="quick-card" id="qaAddTask">
-          <span class="quick-card-icon">📝</span>
-          <span>
-            <span class="quick-card-label">＋ Add Task</span>
-            <span class="quick-card-sub">Create a new task with priority &amp; due date</span>
-          </span>
-        </button>
-        <button class="quick-card" id="qaAddHabit">
-          <span class="quick-card-icon">🔥</span>
-          <span>
-            <span class="quick-card-label">＋ Add Habit</span>
-            <span class="quick-card-sub">Start tracking a new daily habit</span>
-          </span>
-        </button>
-      </section>
 
       <!-- ── Notification Banner ─────────────────────────────── -->
       <div class="notification-banner" id="notificationBanner" style="display:none;">
@@ -335,20 +327,85 @@
   ══════════════════════════════════════════════ -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- ── Floating Action Button (FAB) ────────────────── -->
+  <div class="fab-container">
+    <button class="fab-main" id="fabMain" title="Add New">＋</button>
+    <div class="fab-menu" id="fabMenu">
+      <button class="fab-item" onclick="openAddModal(); toggleFab(false);">
+        <span class="fab-label">Add Task</span>
+        <div class="fab-sub task">📋</div>
+      </button>
+      <button class="fab-item" onclick="openAddHabitModal(); toggleFab(false);">
+        <span class="fab-label">Add Habit</span>
+        <div class="fab-sub habit">🔥</div>
+      </button>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="firebase.js"></script>
   <script src="script.js"></script>
   <script src="habits.js"></script>
   <script src="auth.js"></script>
   <script>
-    // Quick action shortcuts
-    document.getElementById('qaAddTask').addEventListener('click', () => {
-      if (typeof openAddModal === 'function') openAddModal();
+    // ── PWA & Service Worker ──────────────────────────
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('[SW] Registered', reg))
+          .catch(err => console.error('[SW] Registration failed', err));
+      });
+    }
+
+    // ── Install Prompt Logic ──────────────────────────
+    let deferredPrompt;
+    const installBtn = document.getElementById('btnInstallApp');
+    const installItem = document.getElementById('installNavItem');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installItem) installItem.style.display = 'block';
     });
-    document.getElementById('qaAddHabit').addEventListener('click', () => {
-      if (typeof openAddHabitModal === 'function') openAddHabitModal();
+
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`[PWA] Install choice: ${outcome}`);
+        deferredPrompt = null;
+        if (installItem) installItem.style.display = 'none';
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] Installed successfully');
+      if (installItem) installItem.style.display = 'none';
     });
-    
+
+    // ── Floating Action Button (FAB) Toggle ───────────
+    const fabMain = document.getElementById('fabMain');
+    const fabMenu = document.getElementById('fabMenu');
+
+    function toggleFab(force) {
+      const isOpen = typeof force === 'boolean' ? force : !fabMenu.classList.contains('open');
+      fabMenu.classList.toggle('open', isOpen);
+      fabMain.classList.toggle('active', isOpen);
+    }
+
+    if (fabMain) {
+      fabMain.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFab();
+      });
+    }
+
+    // Close FAB menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.fab-container')) toggleFab(false);
+    });
+
     // Dark mode init
     (function () {
       const saved = localStorage.getItem('theme') || 'light';

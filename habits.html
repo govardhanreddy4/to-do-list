@@ -12,6 +12,9 @@
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="habits.css" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6C4DFF">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -75,9 +78,6 @@
 
       <!-- Add Habit CTA + User + Logout -->
       <div class="sidebar-footer">
-        <button class="btn-add-task" id="btnOpenModal">
-          <span>＋</span> Add Habit
-        </button>
         <p class="sidebar-user" id="sidebarUser"></p>
         <button class="btn-logout" id="btnLogout">🚪 Logout</button>
       </div>
@@ -233,6 +233,11 @@
 
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ── Floating Action Button (FAB) ────────────────── -->
+  <div class="fab-container">
+    <button class="fab-main" id="btnOpenModal" title="Add New Habit">＋</button>
+  </div>
 
   <!-- Scripts -->
   <script src="firebase.js"></script>
