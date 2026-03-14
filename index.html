@@ -388,7 +388,8 @@
     const fabMain = document.getElementById('fabMain');
     const fabMenu = document.getElementById('fabMenu');
 
-    function toggleFab(force) {
+    window.toggleFab = function(force) {
+      if (!fabMenu || !fabMain) return;
       const isOpen = typeof force === 'boolean' ? force : !fabMenu.classList.contains('open');
       fabMenu.classList.toggle('open', isOpen);
       fabMain.classList.toggle('active', isOpen);

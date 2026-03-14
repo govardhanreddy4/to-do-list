@@ -236,26 +236,65 @@
 
   <!-- ── Floating Action Button (FAB) ────────────────── -->
   <div class="fab-container">
-    <button class="fab-main" id="btnOpenModal" title="Add New Habit">＋</button>
+    <button class="fab-main" id="fabMain" title="Add New">＋</button>
+    <div class="fab-menu" id="fabMenu">
+      <button class="fab-item" onclick="openAddModal(); toggleFab(false);">
+        <span class="fab-label">Add Task</span>
+        <div class="fab-sub task">📋</div>
+      </button>
+      <button class="fab-item" onclick="openAddHabitModal(); toggleFab(false);">
+        <span class="fab-label">Add Habit</span>
+        <div class="fab-sub habit">🔥</div>
+      </button>
+    </div>
   </div>
 
   <!-- Scripts -->
   <script src="firebase.js"></script>
+  <script src="script.js"></script>
   <script src="habits.js"></script>
   <script src="auth.js"></script>
   <script>
     (function(){
+      // ── Theme Management ──
       const saved = localStorage.getItem('theme') || 'light';
       document.documentElement.dataset.theme = saved;
-      const t = document.getElementById('themeToggle');
-      const l = document.getElementById('themeLabel');
-      if(t) t.checked = saved === 'dark';
-      if(l) l.textContent = saved === 'dark' ? 'Dark Mode' : 'Light Mode';
-      if(t) t.addEventListener('change', () => {
-        const next = t.checked ? 'dark' : 'light';
-        document.documentElement.dataset.theme = next;
-        localStorage.setItem('theme', next);
-        if(l) l.textContent = next === 'dark' ? 'Dark Mode' : 'Light Mode';
+      
+      const themeToggle = document.getElementById('themeToggle');
+      const themeLabel  = document.getElementById('themeLabel');
+      
+      if (themeToggle) {
+        themeToggle.checked = (saved === 'dark');
+        if (themeLabel) themeLabel.textContent = saved === 'dark' ? 'Dark Mode' : 'Light Mode';
+        
+        themeToggle.addEventListener('change', () => {
+          const next = themeToggle.checked ? 'dark' : 'light';
+          document.documentElement.dataset.theme = next;
+          localStorage.setItem('theme', next);
+          if (themeLabel) themeLabel.textContent = next === 'dark' ? 'Dark Mode' : 'Light Mode';
+        });
+      }
+
+      // ── FAB Logic ──
+      const fabMain = document.getElementById('fabMain');
+      const fabMenu = document.getElementById('fabMenu');
+
+      window.toggleFab = function(force) {
+        if (!fabMenu || !fabMain) return;
+        const isOpen = typeof force === 'boolean' ? force : !fabMenu.classList.contains('open');
+        fabMenu.classList.toggle('open', isOpen);
+        fabMain.classList.toggle('active', isOpen);
+      };
+
+      if (fabMain) {
+        fabMain.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleFab();
+        });
+      }
+
+      document.addEventListener('click', (e) => {
+        if (fabMenu && !e.target.closest('.fab-container')) toggleFab(false);
       });
     })();
   </script>

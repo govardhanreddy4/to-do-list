@@ -364,6 +364,7 @@ function openAddModal() {
   modalOverlay.classList.add('open');
   fieldTitle.focus();
 }
+window.openAddModal = openAddModal;
 
 /**
  * Opens the modal pre-filled for editing an existing task.
@@ -389,12 +390,14 @@ function openEditModal(id) {
   modalOverlay.classList.add('open');
   fieldTitle.focus();
 }
+window.openEditModal = openEditModal;
 
 /** Closes the task modal. */
 function closeModal() {
   modalOverlay.classList.remove('open');
   resetForm();
 }
+window.closeModal = closeModal;
 
 /**
  * Opens the delete confirmation dialog.
@@ -404,12 +407,14 @@ function openDeleteModal(id) {
   pendingDeleteId = id;
   deleteOverlay.classList.add('open');
 }
+window.openDeleteModal = openDeleteModal;
 
 /** Closes the delete dialog. */
 function closeDeleteModal() {
   pendingDeleteId = null;
   deleteOverlay.classList.remove('open');
 }
+window.closeDeleteModal = closeDeleteModal;
 
 // ── 8. CRUD Event Handlers ────────────────────────────────────
 
