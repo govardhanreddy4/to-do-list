@@ -17,8 +17,26 @@ const firebaseConfig = {
 // ── Initialize Firebase App ──────────────────────────────────
 firebase.initializeApp(firebaseConfig);
 
-// ── Get a reference to Firestore ─────────────────────────────
-const db = firebase.firestore();
+// ── Auth & Firestore references ───────────────────────────────
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ============================================================
+// AUTH HELPERS
+// ============================================================
+function loginUser(email, pw)    { return auth.signInWithEmailAndPassword(email, pw); }
+function registerUser(email, pw) { return auth.createUserWithEmailAndPassword(email, pw); }
+function logoutUser()            { return auth.signOut(); }
+function onAuthChange(cb)        { return auth.onAuthStateChanged(cb); }
+
+function loginWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  return auth.signInWithPopup(provider);
+}
+
+function resetPassword(email) {
+  return auth.sendPasswordResetEmail(email);
+}
 
 // ── Collection reference (all tasks live here) ───────────────
 const tasksCollection = db.collection("tasks");

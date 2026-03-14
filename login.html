@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="TaskFlow — Login or register to manage your tasks and habits."/>
+  <title>TaskFlow — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body data-page="login" class="login-page">
+
+  <div class="login-shell">
+
+    <!-- ── Left: Branding ──────────────────── -->
+    <div class="login-brand">
+      <div class="brand-content">
+        <div class="brand-logo">✅</div>
+        <h1 class="brand-title">TaskFlow</h1>
+        <p class="brand-tagline">Manage tasks, build habits.<br/>All in one place.</p>
+        <ul class="brand-features">
+          <li>📋 Task management with priorities</li>
+          <li>🔥 Habit tracking with streaks</li>
+          <li>📊 Dashboard statistics</li>
+          <li>☁️ Real-time cloud sync</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── Right: Auth Card ────────────────── -->
+    <div class="login-card">
+
+      <div class="login-logo-mobile">✅ TaskFlow</div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin">Login</button>
+        <button class="auth-tab" id="tabRegister">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="formLogin" novalidate>
+        <div class="inputGroup">
+          <input type="email" id="loginEmail" required autocomplete="email" placeholder=" "/>
+          <label for="loginEmail">Email address</label>
+        </div>
+        <div class="inputGroup">
+          <input type="password" id="loginPw" required autocomplete="current-password" placeholder=" "/>
+          <label for="loginPw">Password</label>
+        </div>
+        <button type="button" class="forgot-pw" id="btnForgotPw">Forgot password?</button>
+        <p class="auth-error" id="errLogin"></p>
+        <button type="submit" class="btn-auth" id="btnLogin">Login</button>
+
+        <div class="divider">or</div>
+
+        <button type="button" class="btn-google" id="btnGoogleLogin">
+          <svg class="google-icon" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <p class="auth-switch">
+          No account?
+          <button type="button" class="link-btn" id="goToRegister">Register here</button>
+        </p>
+      </form>
+
+      <!-- Register Form -->
+      <form id="formRegister" novalidate style="display:none;">
+        <div class="inputGroup">
+          <input type="email" id="regEmail" required autocomplete="email" placeholder=" "/>
+          <label for="regEmail">Email address</label>
+        </div>
+        <div class="inputGroup">
+          <input type="password" id="regPw" required autocomplete="new-password" placeholder=" "/>
+          <label for="regPw">Password</label>
+        </div>
+        <div class="inputGroup">
+          <input type="password" id="regPw2" required autocomplete="new-password" placeholder=" "/>
+          <label for="regPw2">Confirm password</label>
+        </div>
+        <p class="auth-error" id="errRegister"></p>
+        <button type="submit" class="btn-auth" id="btnRegister">Create Account</button>
+        <p class="auth-switch">
+          Have an account?
+          <button type="button" class="link-btn" id="goToLogin">Login here</button>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <script src="firebase.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    document.getElementById('goToRegister').addEventListener('click', () => document.getElementById('tabRegister').click());
+    document.getElementById('goToLogin').addEventListener('click', () => document.getElementById('tabLogin').click());
+  </script>
+</body>
+</html>

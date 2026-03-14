@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="A modern To-Do List Dashboard with Firebase Firestore backend for managing tasks with priorities, due dates, and real-time sync." />
+  <meta name="description"
+    content="A modern To-Do List Dashboard with Firebase Firestore backend for managing tasks with priorities, due dates, and real-time sync." />
   <title>TaskFlow — To-Do Dashboard</title>
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
 
   <!-- App Styles -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- Firebase Compat SDK (v9 compat mode — works with script tags) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body>
+
+<body data-page="dashboard">
 
   <!-- ══════════════════════════════════════════════
        APP SHELL
@@ -29,6 +34,25 @@
       <div class="sidebar-logo">
         <span class="logo-icon">✅</span>
         <span class="logo-text">TaskFlow</span>
+      </div>
+
+      <!-- Night / Day Mode Toggle -->
+      <div class="sidebar-theme-toggle">
+        <span class="theme-label" id="themeLabel">Light Mode</span>
+        <label class="switch" title="Toggle dark mode">
+          <input type="checkbox" id="themeToggle" />
+          <span class="slider">
+            <div class="star star_1"></div>
+            <div class="star star_2"></div>
+            <div class="star star_3"></div>
+            <svg viewBox="0 0 16 16" class="cloud_1 cloud">
+              <path transform="matrix(.77976 0 0 .78395-299.99-418.63)" fill="#fff" d="m391.84 540.91c-.421-.329-.949-.524-1.523-.524-1.351 0-2.451 1.084-2.485
+                2.435-1.395.526-2.388 1.88-2.388 3.466 0 1.874 1.385 3.423 3.182 3.667v.034h12.73v-.006c1.775
+                -.104 3.182-1.584 3.182-3.395 0-1.747-1.309-3.186-2.994-3.379.007-.106.011-.214.011-.322
+                0-2.707-2.271-4.901-5.072-4.901-2.073 0-3.856 1.202-4.643 2.925"></path>
+            </svg>
+          </span>
+        </label>
       </div>
 
       <!-- Navigation -->
@@ -56,7 +80,9 @@
             </button>
           </li>
           <!-- Divider -->
-          <li><div class="nav-divider"></div></li>
+          <li>
+            <div class="nav-divider"></div>
+          </li>
           <li>
             <a href="habits.html" class="nav-btn nav-link">
               <span class="nav-icon">🔥</span>
@@ -66,11 +92,13 @@
         </ul>
       </nav>
 
-      <!-- Add Task CTA -->
+      <!-- Add Task CTA + User + Logout -->
       <div class="sidebar-footer">
         <button class="btn-add-task" id="btnOpenModal">
           <span>＋</span> Add Task
         </button>
+        <p class="sidebar-user" id="sidebarUser"></p>
+        <button class="btn-logout" id="btnLogout">🚪 Logout</button>
       </div>
     </aside>
 
@@ -110,6 +138,13 @@
             <span class="stat-label">Pending</span>
           </div>
         </div>
+        <div class="stat-card habit-stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-info">
+            <span class="stat-value" id="statHabitsDone">0/0</span>
+            <span class="stat-label">Habits Today</span>
+          </div>
+        </div>
         <div class="stat-card percent-card">
           <div class="stat-icon">📊</div>
           <div class="stat-info">
@@ -123,7 +158,25 @@
         </div>
       </section>
 
-      <!-- ── Notification Banner ───────────────────── -->
+      <!-- ── Quick Actions ────────────────────────────────── -->
+      <section class="quick-actions">
+        <button class="quick-card" id="qaAddTask">
+          <span class="quick-card-icon">📝</span>
+          <span>
+            <span class="quick-card-label">＋ Add Task</span>
+            <span class="quick-card-sub">Create a new task with priority &amp; due date</span>
+          </span>
+        </button>
+        <button class="quick-card" id="qaAddHabit">
+          <span class="quick-card-icon">🔥</span>
+          <span>
+            <span class="quick-card-label">＋ Add Habit</span>
+            <span class="quick-card-sub">Start tracking a new daily habit</span>
+          </span>
+        </button>
+      </section>
+
+      <!-- ── Notification Banner ─────────────────────────────── -->
       <div class="notification-banner" id="notificationBanner" style="display:none;">
         <div class="notif-icon">🔔</div>
         <div class="notif-content" id="notifContent"></div>
@@ -152,6 +205,14 @@
         <!-- Task cards injected by script.js -->
       </section>
 
+      <!-- ── Habit Grid ─────────────────────────────── -->
+      <div class="section-header" style="margin-top: 48px; margin-bottom: 20px;">
+        <h2 class="page-title" style="font-size: 20px;">My Habits</h2>
+      </div>
+      <section class="task-grid" id="habitGrid">
+        <!-- Habit cards injected by habits.js -->
+      </section>
+
       <!-- Empty State -->
       <div class="empty-state" id="emptyState" style="display:none;">
         <div class="empty-icon">🗂️</div>
@@ -166,33 +227,23 @@
        MODAL — Add / Edit Task
   ══════════════════════════════════════════════ -->
   <div class="modal-overlay" id="modalOverlay">
+    <!-- ... existing Task Modal ... -->
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-
-      <!-- Modal Header -->
       <div class="modal-header">
         <h2 class="modal-title" id="modalTitle">Add New Task</h2>
         <button class="modal-close" id="modalClose" aria-label="Close modal">✕</button>
       </div>
-
-      <!-- Task Form -->
       <form id="taskForm" novalidate>
-        <!-- Hidden field for edit mode -->
         <input type="hidden" id="taskId" />
-
-        <!-- Title -->
         <div class="form-group">
           <label for="taskTitle">Title <span class="required">*</span></label>
           <input type="text" id="taskTitle" placeholder="e.g. Design landing page" required maxlength="80" />
           <span class="field-error" id="errTitle"></span>
         </div>
-
-        <!-- Description -->
         <div class="form-group">
           <label for="taskDesc">Description</label>
           <textarea id="taskDesc" rows="3" placeholder="Add details about this task…" maxlength="300"></textarea>
         </div>
-
-        <!-- Priority & Due Date (side by side) -->
         <div class="form-row">
           <div class="form-group">
             <label for="taskPriority">Priority <span class="required">*</span></label>
@@ -210,8 +261,6 @@
             <span class="field-error" id="errDueDate"></span>
           </div>
         </div>
-
-        <!-- Status (only shown when editing) -->
         <div class="form-group" id="statusGroup" style="display:none;">
           <label for="taskStatus">Status</label>
           <select id="taskStatus">
@@ -219,14 +268,38 @@
             <option value="completed">✅ Completed</option>
           </select>
         </div>
-
-        <!-- Modal Actions -->
         <div class="modal-actions">
           <button type="button" class="btn-secondary" id="btnCancel">Cancel</button>
           <button type="submit" class="btn-primary" id="btnSave">Save Task</button>
         </div>
       </form>
+    </div>
+  </div>
 
+  <!-- ══════════════════════════════════════════════
+       MODAL — Add / Edit Habit
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="habitModalOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="habitModalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="habitModalTitle">Add New Habit</h2>
+        <button class="modal-close" id="habitModalClose" aria-label="Close modal">✕</button>
+      </div>
+      <form id="habitForm" novalidate>
+        <input type="hidden" id="habitId" />
+        <div class="form-group">
+          <label for="habitName">Habit Name <span class="required">*</span></label>
+          <div class="inputGroup">
+            <input type="text" id="habitName" required maxlength="50" placeholder=" " />
+            <label for="habitName">e.g. Morning Meditation</label>
+          </div>
+          <span class="field-error" id="errHabitName"></span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnHabitCancel">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnHabitSave">Save Habit</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -237,10 +310,22 @@
     <div class="modal confirm-modal" role="dialog" aria-modal="true">
       <div class="confirm-icon">🗑️</div>
       <h3>Delete Task?</h3>
-      <p>This action cannot be undone. The task will be permanently removed.</p>
+      <p>This action cannot be undone. This task will be permanently removed.</p>
       <div class="modal-actions">
         <button class="btn-secondary" id="btnDeleteCancel">Cancel</button>
         <button class="btn-danger" id="btnDeleteConfirm">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="habitDeleteOverlay">
+    <div class="modal confirm-modal" role="dialog" aria-modal="true">
+      <div class="confirm-icon">🗑️</div>
+      <h3>Delete Habit?</h3>
+      <p>This action cannot be undone. All streak data for this habit will be lost.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btnHabitDeleteCancel">Cancel</button>
+        <button class="btn-danger" id="btnHabitDeleteConfirm">Yes, Delete</button>
       </div>
     </div>
   </div>
@@ -253,5 +338,33 @@
   <!-- Scripts -->
   <script src="firebase.js"></script>
   <script src="script.js"></script>
+  <script src="habits.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // Quick action shortcuts
+    document.getElementById('qaAddTask').addEventListener('click', () => {
+      if (typeof openAddModal === 'function') openAddModal();
+    });
+    document.getElementById('qaAddHabit').addEventListener('click', () => {
+      if (typeof openAddHabitModal === 'function') openAddHabitModal();
+    });
+    
+    // Dark mode init
+    (function () {
+      const saved = localStorage.getItem('theme') || 'light';
+      document.documentElement.dataset.theme = saved;
+      const t = document.getElementById('themeToggle');
+      const l = document.getElementById('themeLabel');
+      if (t) t.checked = saved === 'dark';
+      if (l) l.textContent = saved === 'dark' ? 'Dark Mode' : 'Light Mode';
+      if (t) t.addEventListener('change', () => {
+        const next = t.checked ? 'dark' : 'light';
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem('theme', next);
+        if (l) l.textContent = next === 'dark' ? 'Dark Mode' : 'Light Mode';
+      });
+    })();
+  </script>
 </body>
+
 </html>
