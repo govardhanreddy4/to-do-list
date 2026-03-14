@@ -36,10 +36,49 @@ function updateHabitStats() {
 }
 
 // ── 4. Habit Card Builder ────────────────────────────────────
+const NEON_CHECKBOX_HTML = `
+  <div class="neon-checkbox-wrapper">
+    <label class="neon-checkbox">
+      <input type="checkbox" class="habit-check-input" {{CHECKED}} {{DISABLED}} onchange="handleHabitDone('{{ID}}')">
+      <div class="neon-checkbox__frame">
+        <div class="neon-checkbox__box">
+          <div class="neon-checkbox__check-container">
+            <svg viewBox="0 0 24 24" class="neon-checkbox__check">
+              <path d="M3,12.5l7,7L21,5"></path>
+            </svg>
+          </div>
+          <div class="neon-checkbox__glow"></div>
+          <div class="neon-checkbox__borders">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="neon-checkbox__effects">
+          <div class="neon-checkbox__particles">
+            <span></span><span></span><span></span><span></span> <span></span><span></span><span></span><span></span> <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="neon-checkbox__rings">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="ring"></div>
+          </div>
+          <div class="neon-checkbox__sparks">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </label>
+  </div>
+`;
+
 function buildHabitCard(habit) {
   const doneToday = isHabitDoneToday(habit);
   const streak = habit.currentStreak || 0;
   const longest = habit.longestStreak || 0;
+
+  const checkbox = NEON_CHECKBOX_HTML
+    .replace('{{CHECKED}}', doneToday ? 'checked' : '')
+    .replace('{{DISABLED}}', '')
+    .replaceAll('{{ID}}', habit.id);
 
   return `
     <div class="habit-card ${doneToday ? 'done-today' : ''}" data-id="${habit.id}">
@@ -52,22 +91,14 @@ function buildHabitCard(habit) {
         <span>Longest: <strong>${longest}</strong></span>
       </div>
       <div class="habit-actions">
-        <div class="done-today-wrap ${doneToday ? 'is-done' : ''}" onclick="handleHabitDone('${habit.id}')">
-          <div class="checkbox-container-single">
-            <label class="custom-checkbox-visual-only">
-              <input type="checkbox" class="hidden-checkbox" ${doneToday ? 'checked disabled' : ''}>
-              <div class="checkbox-box">
-                <svg class="checkmark" viewBox="0 0 52 52">
-                  <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"></circle>
-                  <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"></path>
-                </svg>
-              </div>
-            </label>
-          </div>
-          <span class="done-today-label">${doneToday ? 'Done Today!' : 'Mark Done'}</span>
+        <div class="done-today-wrap ${doneToday ? 'is-done' : ''}">
+          ${checkbox}
+          <span class="done-today-label">${doneToday ? 'Undo Today!' : 'Mark Done'}</span>
         </div>
-        <button class="card-btn edit" title="Edit habit" onclick="openEditHabitModal('${habit.id}')">✏️</button>
-        <button class="card-btn delete" title="Delete habit" onclick="openDeleteHabitModal('${habit.id}')">🗑️</button>
+        <div class="card-action-btns">
+          <button class="card-btn edit" title="Edit habit" onclick="openEditHabitModal('${habit.id}')">✏️</button>
+          <button class="card-btn delete" title="Delete habit" onclick="openDeleteHabitModal('${habit.id}')">🗑️</button>
+        </div>
       </div>
     </div>
   `;
@@ -130,12 +161,15 @@ function closeHabitDeleteModal() {
 // ── 6. Event Handlers ────────────────────────────────────────
 async function handleHabitDone(id) {
   const habit = allHabits.find(h => h.id === id);
-  if (!habit || isHabitDoneToday(habit)) return;
+  if (!habit) return;
+  const currentlyDone = isHabitDoneToday(habit);
   try {
-    await markHabitDone(id, habit);
-    if (typeof showToast === 'function') showToast('Habit completed! 🔥', 'success');
+    await toggleHabitDone(id, habit);
+    if (typeof showToast === 'function') {
+      showToast(currentlyDone ? 'Habit reverted.' : 'Habit completed! 🔥', currentlyDone ? 'info' : 'success');
+    }
   } catch (err) {
-    console.error('Habit mark error:', err);
+    console.error('Habit toggle error:', err);
   }
 }
 window.handleHabitDone = handleHabitDone;

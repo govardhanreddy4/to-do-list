@@ -185,54 +185,53 @@ async function deleteHabit(id) {
 }
 
 /**
- * markHabitDone – Mark a habit as completed for today and update streaks.
- *
- * Streak rules (client-side):
- *   - If already done today → no-op (returns early).
- *   - If yesterday was completed  → currentStreak + 1.
- *   - If yesterday was NOT completed → currentStreak resets to 1.
- *   - longestStreak is updated if currentStreak exceeds it.
+ * toggleHabitDone – Toggle a habit between completed/incomplete for today.
+ * Handles streak increments and reverts.
  *
  * @param {string} id      – Firestore document ID.
- * @param {Object} habit   – Current habit object from Firestore.
- * @returns {Promise|void}
+ * @param {Object} habit   – Current habit object.
+ * @returns {Promise}
  */
-async function markHabitDone(id, habit) {
-  // ── Date helpers ─────────────────────────────────────────
-  const todayDate = new Date();
+async function toggleHabitDone(id, habit) {
   const toStr = (d) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
   };
-  const today = toStr(todayDate);
-  const yesterdayDate = new Date(todayDate);
-  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = toStr(yesterdayDate);
 
-  // ── Guard: already completed today ───────────────────────
+  const todayD = new Date();
+  const today  = toStr(todayD);
+  const yD     = new Date(todayD);
+  yD.setDate(yD.getDate() - 1);
+  const yesterday = toStr(yD);
+
   const dates = habit.completedDates || [];
-  if (dates.includes(today)) return; // nothing to do
+  const isDoneToday = dates.includes(today);
 
-  // ── Streak calculation ────────────────────────────────────
-  let currentStreak = habit.currentStreak || 0;
-  const longestStreak = habit.longestStreak || 0;
+  let newDates;
+  let newStreak = habit.currentStreak || 0;
+  let longest   = habit.longestStreak || 0;
 
-  if (dates.includes(yesterday)) {
-    // Consecutive day → increment streak
-    currentStreak += 1;
+  if (isDoneToday) {
+    // UNDO: Remove today and revert streak
+    newDates = dates.filter(d => d !== today);
+    if (newDates.includes(yesterday)) {
+      newStreak = Math.max(0, newStreak - 1);
+    } else {
+      newStreak = 0;
+    }
   } else {
-    // Missed at least one day → reset streak
-    currentStreak = 1;
+    // MARK DONE: Add today and increment/reset streak
+    newDates = [...dates, today];
+    newStreak = dates.includes(yesterday) ? newStreak + 1 : 1;
+    longest = Math.max(longest, newStreak);
   }
 
-  const newLongest = Math.max(longestStreak, currentStreak);
-
   return habitsCollection.doc(id).update({
-    completedDates: [...dates, today],
-    currentStreak,
-    longestStreak: newLongest,
+    completedDates: newDates,
+    currentStreak:  newStreak,
+    longestStreak:  longest,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 }

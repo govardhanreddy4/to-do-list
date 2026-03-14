@@ -169,6 +169,39 @@ function checkNotifications() {
 }
 
 // ── 5. Task Card Rendering ────────────────────────────────────
+const NEON_CHECKBOX_HTML = `
+  <div class="neon-checkbox-wrapper">
+    <label class="neon-checkbox">
+      <input type="checkbox" class="task-check-input" {{CHECKED}} {{DISABLED}} onchange="handleToggle('{{ID}}', '{{STATUS}}')">
+      <div class="neon-checkbox__frame">
+        <div class="neon-checkbox__box">
+          <div class="neon-checkbox__check-container">
+            <svg viewBox="0 0 24 24" class="neon-checkbox__check">
+              <path d="M3,12.5l7,7L21,5"></path>
+            </svg>
+          </div>
+          <div class="neon-checkbox__glow"></div>
+          <div class="neon-checkbox__borders">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="neon-checkbox__effects">
+          <div class="neon-checkbox__particles">
+            <span></span><span></span><span></span><span></span> <span></span><span></span><span></span><span></span> <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="neon-checkbox__rings">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="ring"></div>
+          </div>
+          <div class="neon-checkbox__sparks">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </label>
+  </div>
+`;
 
 /**
  * getDueDateClass – Returns a CSS class based on a task's due date.
@@ -192,17 +225,17 @@ function buildTaskCard(task) {
   const dueDateLabel = task.dueDate ? formatDate(task.dueDate) : '—';
   const dueIcon      = dueCls === 'overdue' ? '⚠️' : '📅';
 
+  const checkbox = NEON_CHECKBOX_HTML
+    .replace('{{CHECKED}}', isCompleted ? 'checked' : '')
+    .replaceAll('{{ID}}', task.id)
+    .replace('{{STATUS}}', task.status)
+    .replace('{{DISABLED}}', '');
+
   return `
     <div class="task-card ${isCompleted ? 'completed' : ''}" data-id="${task.id}">
       <!-- Checkbox + Title + Action Buttons -->
       <div class="card-top">
-        <input
-          type="checkbox"
-          class="task-checkbox"
-          aria-label="Mark task complete"
-          ${isCompleted ? 'checked' : ''}
-          onchange="handleToggle('${task.id}', '${task.status}')"
-        />
+        ${checkbox}
         <div class="task-title-wrap">
           <div class="task-title">${escapeHtml(task.title)}</div>
           ${task.description
